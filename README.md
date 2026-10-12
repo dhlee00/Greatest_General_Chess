@@ -160,7 +160,7 @@
 
 <details><summary><b>Unity Netcode for GameObjects & Relay 기반 온라인 매치메이킹</b></summary>
 
-#### 코드 [(전체 코드)](링크)
+#### 코드 [(전체 코드(매칭 관련))](Scripts/Network/LobbyManager.cs) [(전체 코드(네트워크 관련))](Scripts/Network/RelayNetwork.cs)
 
 * 매칭 상태 업데이트 및 상대방 탐색
   ```csharp
