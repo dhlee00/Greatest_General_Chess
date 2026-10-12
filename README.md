@@ -25,7 +25,7 @@
 
 <details><summary><b>육각 타일 기반 길찾기 알고리즘</b></summary>
 
-#### 코드 [(전체 코드)](링크)
+#### 코드 [(전체 코드)](Scripts/Map/FindPath.cs)
 
 * 큐브 좌표계 변환
   ```csharp
