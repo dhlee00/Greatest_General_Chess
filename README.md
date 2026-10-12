@@ -155,3 +155,105 @@
 이를 이용해 유닛이 이동 가능한 타일들을 나타내는 기능과 서서히 이동하는 연출 등 타일과 관련된 기능들을 쉽게 구현할 수 있었습니다.
 
 ---
+
+<details><summary><b>Unity Netcode for GameObjects & Relay 기반 온라인 매치메이킹</b></summary>
+
+#### 코드 [(전체 코드)](링크)
+
+* 매칭 상태 업데이트 및 상대방 탐색
+  ```csharp
+  public async void StartMatch()
+  {
+      isMatching = true;
+
+      Dictionary<string, string> option = new Dictionary<string, string>
+      {
+          { "Status", "Matching" },
+          { "MatchingTime", DateTime.Now.Ticks.ToString() },
+          { "SelectedGeneral", myGeneral }
+      };
+
+      // 서버에 내 매칭 상태 업데이트
+      await UpdatePlayerData(option);
+
+      while (isMatching)
+      {
+          mainLobby = await LoadMainLobby();
+
+          // 매칭 중인 다른 유저 탐색
+          var matchingUser = mainLobby.Players.FirstOrDefault(p => p.Id != playerId && p.Data != null && p.Data.ContainsKey("Status") && p.Data["Status"].Value == "Matching");
+
+          if (matchingUser != null)
+          {
+              long myMatchingTime = long.Parse(mainLobby.Players.First(p => p.Id == playerId).Data["MatchingTime"].Value);
+              long opponentMatchingTime = long.Parse(matchingUser.Data["MatchingTime"].Value);
+              opponentGeneral = matchingUser.Data["SelectedGeneral"].Value;
+
+              // 먼저 매칭을 시작한 유저가 방(Relay)을 생성하고 참여 코드 공유
+              if (myMatchingTime < opponentMatchingTime || (myMatchingTime == opponentMatchingTime && string.Compare(playerId, matchingUser.Id) < 0))
+              {
+                  var joinCode = await RelayNetwork.instance.StartRelay();
+                  await ShareCode(joinCode);
+                  isMatching = false;
+                  return;
+              }
+
+              // 늦게 시작한 유저는 상대방의 참여 코드로 방에 입장
+              else
+              {
+                  if (await JoinRoom(matchingUser.Id))
+                  {
+                      isMatching = false;
+                      return;
+                  }
+              }
+          }
+
+          else
+          {
+              await Task.Delay(500);
+          }
+      }
+  }
+  ```
+  > 매칭을 시작한 시간과 나의 상태를 매칭 중인 상태로 업데이트 하고 또 다른 매칭 중인 유저를 탐색합니다.<br>
+  상대방을 찾은 경우 상대방과 비교해서 먼저 매칭을 시작한 시간이 빠른 유저가 방을 생성하고 참여 코드를 공유합니다.<br>
+  늦게 매칭을 시작한 유저는 참여 코드가 공유 되면 방에 참여합니다.
+  <br>
+
+* Unity Relay를 통한 호스트 세션 생성 및 참여 코드 발급
+  ```csharp
+  public async Task<string> StartRelay()
+  {
+      // Relay Allocation 생성 및 Join Code 발급
+      Allocation allocation = await RelayService.Instance.CreateAllocationAsync(2);
+      string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+
+      var unityTransport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+
+      // 호스트 릴레이 데이터 설정
+      unityTransport.SetHostRelayData
+      (
+          allocation.RelayServer.IpV4,
+          (ushort)allocation.RelayServer.Port,
+          allocation.AllocationIdBytes,
+          allocation.Key,
+          allocation.ConnectionData
+      );
+
+      NetworkManager.Singleton.StartHost();
+      SceneManager.sceneLoaded += GenerateGameManager;
+      SceneManager.LoadScene("LoadingScene");
+
+      return joinCode;
+  }
+  ```
+  > Unity Relay를 통해 서버와 클라이언트의 역할을 동시에 하는 호스트로서 방을 생성하고 생성한 방에 입장하기 위한 참여 코드를 발급합니다.
+  <br>
+
+#### 설계 의도
+> 큐브좌표계를 활용해 거리를 계산하고 특정 타일 회피를 고려한 타일과 타일 간의<br>
+최단 경로를 효율적으로 찾기 위해 길찾기에 특화된 A* 알고리즘을 구현했습니다.<br>
+이를 이용해 유닛이 이동 가능한 타일들을 나타내는 기능과 서서히 이동하는 연출 등 타일과 관련된 기능들을 쉽게 구현할 수 있었습니다.
+
+---
