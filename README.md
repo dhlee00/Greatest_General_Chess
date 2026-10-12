@@ -23,7 +23,7 @@
 
 ## 주요 기능
 
-<details><summary><b>육각 타일 기반 A* 알고리즘</b></summary>
+<details><summary><b>육각 타일 기반 길찾기 알고리즘</b></summary>
 
 #### 코드 [(전체 코드)](링크)
 
@@ -56,7 +56,7 @@
   > 설명
   <br>
 
-* 육각 타일 기반 A* 알고리즘
+* A* 알고리즘
   ```csharp
   public List<Vector2Int> Path(Vector2Int startTile, Vector2Int endTile)
   {
