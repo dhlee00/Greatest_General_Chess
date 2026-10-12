@@ -257,4 +257,92 @@
 > 매칭되었을 때 서로 방을 생성해 방을 생성한 사람만 있고 들어가려는 사람은 없는 경우가 발생하지 않도록<br>
 매칭 상태를 업데이트 할 때 매칭을 시작한 시간도 같이 업데이트해 비교할 수 있도록 설계했습니다.
 
+---
+
+</details>
+
+<details><summary><b>턴 제어 및 RPC 기반 동기화</b></summary>
+
+#### 코드 [(전체 코드]()
+
+* 턴 제어
+  ```csharp
+  public void ChangeTurn(bool extraTurn, ulong senderId)
+  {
+      turnCount++;
+      m_UI.PrintPrintTurn(turnCount);
+    
+      // 플레이어 상태 및 스킬 쿨타임 초기화
+      m_Player.CheckSkillTurn();
+      m_Player.SkillCoolDown();
+      m_Player.ResetState();
+    
+      actionPoint = 2; // 행동력 초기화
+
+      // 서버 권한으로 턴 제한 시간 및 턴 주체 변경
+      if (IsServer)
+      {
+          turnTimer.Value = turnTime;
+          isP1Turn.Value = !isP1Turn.Value;
+      }
+
+      if (extraTurn)
+      {
+          StartCoroutine(TakeTurn(senderId));
+      }
+  }
+  ```
+  > 서버이자 클라이언트의 역할을 하는 호스트인 유저가 턴을 제어합니다. 호스트인 유저는 자신의 턴이 종료되면 바로 메서드를 실행하고<br>
+  호스트가 아닌 유저는 자신의 턴이 종료될 때 호스트인 유저에게 알려 턴 변경 메서드를 실행해줄 것을 요청합니다.
+  <br>
+
+* RPC 기반 동기화
+  ```csharp
+  [Rpc(SendTo.NotMe)]
+  public void UnitMoveRpc(string unitID, Vector2Int destinationCoord)
+  {
+      Unit unit = m_Unit.EnemyUnitList[unitID];
+
+      if (m_Player.EnemyControlUnit != unit)
+      {
+          m_Player.EnemyControlUnit = unit;
+          unit.Selected(true);
+      }
+ 
+      Tile destination = m_Map.TileList[destinationCoord];
+      StartCoroutine(unit.Move(destination));
+  }
+
+  [Rpc(SendTo.NotMe)]
+  public void UnitAttackRpc(string unitID, Vector2Int tileCoord, float damageValue, bool _isMiss, bool _isNegation)
+  {
+      Unit attacker = m_Unit.EnemyUnitList[unitID];
+
+      if (m_Player.EnemyControlUnit != attacker)
+      {
+          m_Player.EnemyControlUnit = attacker;
+          attacker.Selected(true);
+      }
+
+      Tile targetTile = m_Map.TileList[tileCoord];
+
+      Damage damage = new Damage
+      {
+          value = damageValue,
+          isMiss = _isMiss,
+          isNegation = _isNegation
+      };
+
+      StartCoroutine(attacker.Attack(targetTile, damage));
+  }
+  ```
+  > RPC를 통해 서버에게 상대방의 게임 화면에 유닛 조작 상태를 동기화해줄 것을 요청합니다.<br>
+  유닛 이동의 경우 이동하려는 유닛과 목적지 타일의 정보를 함께 넘겨주고<br>
+  유닛 공격의 경우 공격하려는 유닛과 공격하려는 타일 좌표, 데미지 수치, 빗나감 여부, 무효화 여부를 함께 넘겨줍니다.
+  <br>
+
+#### 설계 의도
+> 온라인 상에서 실시간으로 진행되는 게임인만큼 양쪽 플레이어에게 정확한 현재 턴과 제한 시간 등의 정보를 넘겨주기 위해 서버 역할을 하는 호스트가 혼자 턴을 제어하도록 설계했습니다.<br>
+유닛의 이동, 공격 동기화는 최소한의 비용으로 동기화 시키기 위해 꼭 필요한 정보만 넘기고 연출은 각각의 컴퓨터에서 진행되도록 설계했습니다.
+
 </details>
