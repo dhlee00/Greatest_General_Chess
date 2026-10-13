@@ -25,6 +25,8 @@
 
 <details><summary><b>육각 타일 기반 길찾기 알고리즘</b></summary>
 
+<img width="654" height="368" alt="KakaoTalk_20261013_170119687" src="https://github.com/user-attachments/assets/b79ecec4-44dd-41c2-b311-c974ba0ae4fb" />
+
 #### 코드 [(전체 코드)](Scripts/Map/FindPath.cs)
 
 * 큐브 좌표계 변환
@@ -160,6 +162,8 @@
 
 <details><summary><b>Unity Netcode for GameObjects & Relay 기반 온라인 매치메이킹</b></summary>
 
+<img width="654" height="368" alt="KakaoTalk_20261013_170114349" src="https://github.com/user-attachments/assets/4fc96eae-6f3d-4928-9f32-621f3145b137" />
+
 #### 코드 [(전체 코드(매칭 관련))](Scripts/Network/LobbyManager.cs) [(전체 코드(네트워크 관련))](Scripts/Network/RelayNetwork.cs)
 
 * 매칭 상태 업데이트 및 상대방 탐색
@@ -262,6 +266,10 @@
 </details>
 
 <details><summary><b>턴 제어 및 RPC 기반 동기화</b></summary>
+
+<img width="654" height="368" alt="KakaoTalk_20261013_170114349_01" src="https://github.com/user-attachments/assets/b1a8564b-cf69-4fe4-beb4-723ba2b845fc" />
+<img width="654" height="368" alt="KakaoTalk_20261013_170114349_03" src="https://github.com/user-attachments/assets/f667515d-f2fd-400a-bc2f-9758cc1acee8" />
+<img width="654" height="368" alt="KakaoTalk_20261013_170114349_02" src="https://github.com/user-attachments/assets/0d89994f-1b2b-4982-925a-a81d1bb632c9" />
 
 #### 코드 [(전체 코드)](Scripts/Game/GameManager.cs)
 
