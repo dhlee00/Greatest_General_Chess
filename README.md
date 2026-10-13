@@ -350,3 +350,94 @@
 ---
 
 </details>
+
+<details><summary><b>스킬 시스템</b></summary>
+
+#### 코드 [(전체 코드)](Scripts/Game/GameManager.cs)
+
+* 대리자 기반 스킬 적용
+  ```csharp
+  public static void CheckDamageNegation(General general, SkillData skillData, int value, bool onoff)
+  {
+      foreach (Unit target in general.UnitList.Values)
+      {
+          if (onoff)
+          {
+              target.CheckDamageNegation += (damage) =>
+              {
+                  float ran = Random.Range(0f, 1f);
+
+                  if ((ran * 100) <= value)
+                  {
+                      damage.value.value = 0.0f;
+                      damage.value.isNegation = true;
+                  }
+              };
+
+              target.AppliedSkill.Add(skillData);
+          }
+
+          else
+          {
+              target.CheckDamageNegation = null;
+          }
+      }
+  }
+  ```
+  > **위 코드는 유닛이 피해를 받을 때 일정 확률로 피해를 무효화 시키는 능력을 부여해주는 스킬의 코드입니다.**<br>
+  스킬을 활성화하면 각 유닛들이 가지고 있는 대리자에 스킬의 효과를 람다식으로 구독합니다.<br>(위 스킬로 예를 들면 확률 계산을 통해 데미지 무효화 여부를 결정하는 효과를 부여합니다.)<br>
+  모든 스킬들은 장군이 사망하면 비활성화 되므로 장군들은 사망 시 유닛들의 스킬 효과 대리자 리스트에 있던 스킬 효과를 초기화합니다.
+  <br>
+
+* RPC 기반 동기화
+  ```csharp
+  [Rpc(SendTo.NotMe)]
+  public void UnitMoveRpc(string unitID, Vector2Int destinationCoord)
+  {
+      Unit unit = m_Unit.EnemyUnitList[unitID];
+
+      if (m_Player.EnemyControlUnit != unit)
+      {
+          m_Player.EnemyControlUnit = unit;
+          unit.Selected(true);
+      }
+ 
+      Tile destination = m_Map.TileList[destinationCoord];
+      StartCoroutine(unit.Move(destination));
+  }
+
+  [Rpc(SendTo.NotMe)]
+  public void UnitAttackRpc(string unitID, Vector2Int tileCoord, float damageValue, bool _isMiss, bool _isNegation)
+  {
+      Unit attacker = m_Unit.EnemyUnitList[unitID];
+
+      if (m_Player.EnemyControlUnit != attacker)
+      {
+          m_Player.EnemyControlUnit = attacker;
+          attacker.Selected(true);
+      }
+
+      Tile targetTile = m_Map.TileList[tileCoord];
+
+      Damage damage = new Damage
+      {
+          value = damageValue,
+          isMiss = _isMiss,
+          isNegation = _isNegation
+      };
+
+      StartCoroutine(attacker.Attack(targetTile, damage));
+  }
+  ```
+  > RPC를 통해 서버에게 상대방의 게임 화면에 유닛 조작 상태를 동기화해줄 것을 요청합니다.<br>
+  유닛 이동의 경우 이동하려는 유닛과 목적지 타일의 정보를 함께 넘겨주고<br>
+  유닛 공격의 경우 공격하려는 유닛과 공격하려는 타일 좌표, 데미지 수치, 빗나감 여부, 무효화 여부를 함께 넘겨줍니다.
+  <br>
+
+#### 설계 의도
+> 온라인 상에서 실시간으로 진행되는 게임인만큼 양쪽 플레이어에게 정확한 현재 턴과 제한 시간 등의 정보를 넘겨주기 위해<br>
+서버 역할을 하는 호스트가 혼자 턴을 제어하도록 설계했습니다.<br>
+유닛의 이동, 공격을 포함한 모든 동기화는 최소한의 비용으로 동기화 시키기 위해 꼭 필요한 정보만 넘기고<br>
+> 연출은 각각의 컴퓨터에서 진행되도록 설계했습니다.
+
+</details>
