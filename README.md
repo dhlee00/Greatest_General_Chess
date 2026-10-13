@@ -353,7 +353,7 @@
 
 <details><summary><b>스킬 시스템</b></summary>
 
-#### 코드 [(전체 코드)](Scripts/Game/GameManager.cs)
+#### 코드 [(전체 코드(스킬 관련))](Scripts/Game/GlobalSkill.cs) [(전체 코드(스킬 정보 업데이트 관련))](Scripts/Game/SkillUpdater.cs)
 
 * 대리자 기반 스킬 적용
   ```csharp
