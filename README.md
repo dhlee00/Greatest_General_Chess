@@ -385,59 +385,73 @@
   }
   ```
   > **위 코드는 유닛이 피해를 받을 때 일정 확률로 피해를 무효화 시키는 능력을 부여해주는 스킬의 코드입니다.**<br>
-  스킬을 활성화하면 각 유닛들이 가지고 있는 대리자에 스킬의 효과를 람다식으로 구독합니다.<br>(위 스킬로 예를 들면 확률 계산을 통해 데미지 무효화 여부를 결정하는 효과를 부여합니다.)<br>
+  스킬을 활성화하면 각 유닛들이 가지고 있는 대리자에 스킬의 효과를 람다식으로 구독합니다. 위 스킬로 예를 들면 확률 계산을 통해 데미지 무효화 여부를 결정하는 효과를 부여합니다.<br>
   모든 스킬들은 장군이 사망하면 비활성화 되므로 장군들은 사망 시 유닛들의 스킬 효과 대리자 리스트에 있던 스킬 효과를 초기화합니다.
   <br>
 
 * RPC 기반 동기화
   ```csharp
-  [Rpc(SendTo.NotMe)]
-  public void UnitMoveRpc(string unitID, Vector2Int destinationCoord)
+  void UpdateSkill()
   {
-      Unit unit = m_Unit.EnemyUnitList[unitID];
+      string tsvData;
 
-      if (m_Player.EnemyControlUnit != unit)
+      try
       {
-          m_Player.EnemyControlUnit = unit;
-          unit.Selected(true);
+          using (WebClient client = new WebClient())
+          {
+              // 구글 시트 내용을 Tsv 형식으로 다운로드
+              tsvData = client.DownloadString(sheetUrl);
+          }
       }
- 
-      Tile destination = m_Map.TileList[destinationCoord];
-      StartCoroutine(unit.Move(destination));
-  }
-
-  [Rpc(SendTo.NotMe)]
-  public void UnitAttackRpc(string unitID, Vector2Int tileCoord, float damageValue, bool _isMiss, bool _isNegation)
-  {
-      Unit attacker = m_Unit.EnemyUnitList[unitID];
-
-      if (m_Player.EnemyControlUnit != attacker)
+      catch (WebException e)
       {
-          m_Player.EnemyControlUnit = attacker;
-          attacker.Selected(true);
+          Debug.LogError($"데이터 다운로드 실패: {e.Message}");
+          return;
       }
 
-      Tile targetTile = m_Map.TileList[tileCoord];
+      // 스킬 목록 불러오기
+      Dictionary<string, SkillData> skillList = SkillFromGoogleSheet(tsvData);
 
-      Damage damage = new Damage
-      {
-          value = damageValue,
-          isMiss = _isMiss,
-          isNegation = _isNegation
-      };
-
-      StartCoroutine(attacker.Attack(targetTile, damage));
+      // 스킬 적용
+      SetSkill(skillList);
   }
   ```
-  > RPC를 통해 서버에게 상대방의 게임 화면에 유닛 조작 상태를 동기화해줄 것을 요청합니다.<br>
-  유닛 이동의 경우 이동하려는 유닛과 목적지 타일의 정보를 함께 넘겨주고<br>
-  유닛 공격의 경우 공격하려는 유닛과 공격하려는 타일 좌표, 데미지 수치, 빗나감 여부, 무효화 여부를 함께 넘겨줍니다.
+  > 구글 스프레드 시트의 스킬 정보들을 Tsv 형식으로 불러와 파싱합니다.<br>
+  그 후 ScriptableObject 형태의 장군 데이터 중 스킬 정보에 반영해 갱신합니다.
   <br>
 
+* 스킬 정보 업데이트
+  ```csharp
+  void SetSkill(Dictionary<string, SkillData> skillList)
+  {
+      // 폴더 내에 모든 장군 데이터 불러오기
+      string[] guids = AssetDatabase.FindAssets("t:GeneralData", new[] { folderPath });
+
+      foreach (string guid in guids)
+      {
+          // 실제 에셋 경로를 얻고 로드
+          string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+          GeneralData generalData = AssetDatabase.LoadAssetAtPath<GeneralData>(assetPath);
+
+          // 스킬 ID에 맞는 스킬 적용
+          generalData.SkillData[0] = skillList[generalData.SkillData[0].SkillID];
+          generalData.SkillData[1] = skillList[generalData.SkillData[1].SkillID];
+
+          // 수정 된 상태 알림
+          EditorUtility.SetDirty(generalData);
+      }
+
+      // 변경 사항 저장 + 최신화
+      AssetDatabase.SaveAssets();
+      AssetDatabase.Refresh();
+      Debug.Log("장군 스킬 업데이트 완료");
+  }
+  ```
+  > 장군 데이터들을 저장해둔 폴더에서 각 장군마다 가진 스킬들의 정보를 구글 스프레드 시트에 저장된 정보와 동일하게 갱신합니다.<br>
+  각 장군마다 가진 스킬의 ID만 직접 입력하면 나머지 정보들은 자동으로 갱신됩니다.
+ 
 #### 설계 의도
-> 온라인 상에서 실시간으로 진행되는 게임인만큼 양쪽 플레이어에게 정확한 현재 턴과 제한 시간 등의 정보를 넘겨주기 위해<br>
-서버 역할을 하는 호스트가 혼자 턴을 제어하도록 설계했습니다.<br>
-유닛의 이동, 공격을 포함한 모든 동기화는 최소한의 비용으로 동기화 시키기 위해 꼭 필요한 정보만 넘기고<br>
-> 연출은 각각의 컴퓨터에서 진행되도록 설계했습니다.
+> 장군은 장군 본인도 스킬을 사용하면서 **스킬을 부여해주는 역할**이라는 점과 유닛은 **부여 받은 스킬을 사용하는 역할**이라는 점을 명확하게 구분하고 싶었습니다. 이를 위해 유닛들에게 스킬 효과를 담을 대리자를 선언하고 장군은 그 대리자에 스킬 효과를 구독, 유닛은 대리자를 실행하는 방식으로 설계했습니다.
+스킬의 데이터는 구글 스프레드 시트를 통해 관리하고 있었습니다. 하지만 기획이 변경될 때 마다 유니티 내에서 일일이 직접 데이터를 수정하는 것이 번거로웠습니다. 이를 해결하기 위해 버튼 클릭만으로 편하게 최신화 할 수 있도록 외부 확장 툴을 구현했습니다.
 
 </details>
