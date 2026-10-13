@@ -353,6 +353,9 @@
 
 <details><summary><b>스킬 시스템</b></summary>
 
+<img width="654" height="368" alt="KakaoTalk_20261013_161750233" src="https://github.com/user-attachments/assets/707ca630-2343-4299-962d-ea2a2b1abe59" />
+<img width="1919" height="616" alt="스크린샷 2026-10-13 160849" src="https://github.com/user-attachments/assets/50041f8d-cf00-4bdb-b762-61dc3a4d3115" />
+
 #### 코드 [(전체 코드(스킬 관련))](Scripts/Game/GlobalSkill.cs) [(전체 코드(스킬 정보 업데이트 관련))](Scripts/Game/SkillUpdater.cs)
 
 * 대리자 기반 스킬 적용
