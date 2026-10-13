@@ -263,7 +263,7 @@
 
 <details><summary><b>턴 제어 및 RPC 기반 동기화</b></summary>
 
-#### 코드 [(전체 코드]()
+#### 코드 [(전체 코드)](Scripts/Game/GameManager.cs)
 
 * 턴 제어
   ```csharp
