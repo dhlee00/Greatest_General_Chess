@@ -23,21 +23,6 @@ struct Node
     }
 }
 
-struct NewNode
-{
-    public Vector2Int coord;
-    public int cost;
-    public bool visit;
-
-    // 노드 생성자
-    public NewNode(Vector2Int coord, int cost, bool visit)
-    {
-        this.coord = coord;
-        this.cost = cost;
-        this.visit = visit;
-    }
-}
-
 public class FindPath
 {
     // 타일 리스트
@@ -193,45 +178,6 @@ public class FindPath
         return path;
     }
     #endregion
-
-    Queue<NewNode> moveTileList = new Queue<NewNode>();
-
-    //// 기동 가능 확인
-    //public List<Vector2Int> CheckMove(Vector2Int startTile, int movement)
-    //{
-    //    List<Vector2Int> canMoveList = new List<Vector2Int>();
-
-    //    moveTileList.Clear();
-
-    //    NewNode newNode = new NewNode(startTile, 0, false);
-    //    moveTileList.Enqueue(newNode);
-
-    //    while (moveTileList.Count > 0)
-    //    {
-    //        NewNode node = moveTileList.Dequeue();
-
-    //        if (!node.visit)
-    //        {
-    //            // 주변 타일 탐색
-    //            foreach (var tile in NeighborTiles(node.coord))
-    //            {
-    //                int newCost = node.cost + GetMoveCost(node.coord, tile.Coord);
-
-    //                if (newCost <= movement)
-    //                {
-    //                    NewNode neighborNode = new NewNode(tile.Coord, newCost, false);
-    //                    moveTileList.Enqueue(neighborNode);
-    //                }
-    //            }
-
-    //            node.visit = true;
-
-    //            canMoveList.Add(node.coord);
-    //        }
-    //    }
-
-    //    return canMoveList;
-    //}
 
     // 현재 타일의 인접한 6개 타일의 좌표를 계산하고 맵 내에 존재하는지 확인
     public List<Tile> NeighborTiles(Vector2Int nowTile)
