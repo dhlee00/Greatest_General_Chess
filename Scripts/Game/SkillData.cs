@@ -118,8 +118,6 @@ public class SkillData
     [SerializeField] bool isActivate;
     public bool IsActivate { get => isActivate; set => isActivate = value; }
 
-    [SerializeField] Unit unit;
-
     // 생성자
     public SkillData(SkillData data)
     {
