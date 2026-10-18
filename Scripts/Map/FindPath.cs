@@ -166,6 +166,11 @@ public class FindPath
                 // 부모 노드 정보를 닫힌 목록에서 가져와 다음 노드로 설정
                 currentNode = closeList[currentNode.parentCoord];
             }
+
+            else
+            {
+                break;
+            }
         }
 
         // 마지막에 출발지점 추가
