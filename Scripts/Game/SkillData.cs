@@ -134,8 +134,8 @@ public class SkillData
         rangeValue = data.rangeValue;                // 스킬 범위 (0이면 전 범위)
         durationTurn = data.durationTurn;            // 지속 턴 (0이면 장군 전사시까지 지속)
         effect = new List<Effect>(data.effect);      // 적용되는 효과
-        activateCondition = data.activateCondition;  // 스킬 기능
-        effectMethod = data.effectMethod;            // 적용 중
+        activateCondition = data.activateCondition;  // 발동 조건
+        effectMethod = data.effectMethod;            // 스킬 기능
     }
     public SkillData() { }
 
