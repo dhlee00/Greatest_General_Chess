@@ -830,14 +830,17 @@ public class Unit : MonoBehaviour
                 m_Unit.EnemyUnitList.Remove(unitID);
             }
 
-            // 가치 점수 확인
-            M_Player.CheckOutNumbered.Invoke();
-
             // 애니메이션 재생
             anim.SetInteger("death", Random.Range(1, 3));
 
             // 효과음 재생
             SFXManager.instance.PlaySFX(dieSFX);
+
+            // 가치 점수 확인
+            if (M_Player.CheckOutNumbered != null)
+            {
+                M_Player.CheckOutNumbered.Invoke();
+            }
         }
 
         else
