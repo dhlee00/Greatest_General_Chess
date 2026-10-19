@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
+#if UNITY_EDITOR
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using UnityEditor;
 using UnityEngine;
 
-#if UNITY_EDITOR
 public class SkillUpdater : EditorWindow
 {
-    // 맵 디자인 구글 시트 주소
+    // 스킬 데이터 구글 시트 주소
     string sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQksIif49bwK6XxJJICjCrhWh29rZ6BwcmGXbZy-7HyCoAZSfmW2HiYf0wcx7m943rulvPdw5pfQLRz/pub?output=tsv";
 
     // 저장 경로
