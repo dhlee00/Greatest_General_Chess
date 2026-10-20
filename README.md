@@ -6,7 +6,7 @@
 
 ---
 
-📺 [시연 영상 (YouTube)](링크)<br>
+📺 [시연 영상 (YouTube)](https://youtu.be/G79JdVLbekU)<br>
 🎮 [빌드 파일 다운로드 (Google Drive)](https://drive.google.com/file/d/14FHR_amLAltqyWwiunJTnI22-_Ok8Aci/view?usp=drive_link)<br>
 📄 [기획서](https://github.com/dhlee00/Greatest_General_Chess/blob/main/GGC%20%EB%A9%94%EC%9D%B8%20%EA%B8%B0%ED%9A%8D%EC%84%9C.pdf)
 
